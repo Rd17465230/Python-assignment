@@ -4,6 +4,7 @@ from pages.gpa_page import GpaPage
 import matplotlib.pyplot as plt
 
 
+#12313122
 #qweqwewqe
 class StudentAssistantApp(Tk):
     def __init__(self):
