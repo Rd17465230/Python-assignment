@@ -3,6 +3,8 @@ from pages.main_menu import MainMenu
 from pages.gpa_page import GpaPage
 import matplotlib.pyplot as plt
 
+
+#1234567
 class StudentAssistantApp(Tk):
     def __init__(self):
         super().__init__()
