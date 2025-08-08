@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 
+#78910456489
 class GpaPage(Frame, Resize):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent, bg="#f0f4f8")
