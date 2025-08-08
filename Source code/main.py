@@ -3,6 +3,7 @@ from pages.main_menu import MainMenu
 from pages.gpa_page import GpaPage
 import matplotlib.pyplot as plt
 
+#666
 
 #12313122
 #qweqwewqe
