@@ -3,7 +3,7 @@ from pages.main_menu import MainMenu
 from pages.gpa_page import GpaPage
 import matplotlib.pyplot as plt
 
-
+#666
 #qweqwewqe
 class StudentAssistantApp(Tk):
     def __init__(self):
