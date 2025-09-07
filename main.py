@@ -4,6 +4,8 @@ from pages.gpa_page import GpaPage
 from pages.homeworkPlanner import HomeworkPlanner
 import matplotlib.pyplot as plt
 
+
+
 class StudentAssistantApp(Tk):
     def __init__(self):
         super().__init__()
