@@ -21,7 +21,8 @@ class MainMenu(Frame, Resize):
                              command=lambda: controller.show_frame("GpaPage"))
         self.button1.place(relx=0.5, rely=0.4, relwidth=0.3, relheight=0.08, anchor="center")
 
-        self.button2 = Button(self, text="LLT")
+        self.button2 = Button(self, text="Simple Reminder", 
+                             command=lambda: controller.show_frame("SimpleReminder"))
         self.button2.place(relx=0.5, rely=0.5, relwidth=0.3, relheight=0.08, anchor="center")
 
         self.button3 = Button(self, text="Homework planner",

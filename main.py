@@ -2,9 +2,8 @@ from tkinter import *
 from pages.main_menu import MainMenu
 from pages.gpa_page import GpaPage
 from pages.homeworkPlanner import HomeworkPlanner
+from pages.simpleReminder import SimpleReminder
 import matplotlib.pyplot as plt
-
-
 
 class StudentAssistantApp(Tk):
     def __init__(self):
@@ -17,7 +16,7 @@ class StudentAssistantApp(Tk):
 
         self.frames = {}
 
-        for F in (MainMenu, GpaPage, HomeworkPlanner):
+        for F in (MainMenu, GpaPage, HomeworkPlanner, SimpleReminder):
             page = F(parent=container, controller=self)
             self.frames[F.__name__] = page
             page.place(relwidth=1, relheight=1)
