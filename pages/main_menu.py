@@ -24,7 +24,8 @@ class MainMenu(Frame, Resize):
         self.button2 = Button(self, text="LLT")
         self.button2.place(relx=0.5, rely=0.5, relwidth=0.3, relheight=0.08, anchor="center")
 
-        self.button3 = Button(self, text="LKJ")
+        self.button3 = Button(self, text="Homework planner",
+                              command=lambda: controller.show_frame("HomeworkPlanner"))
         self.button3.place(relx=0.5, rely=0.6, relwidth=0.3, relheight=0.08, anchor="center")
 
         # Initial update

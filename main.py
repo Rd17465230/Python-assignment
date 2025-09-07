@@ -1,6 +1,7 @@
 from tkinter import *
 from pages.main_menu import MainMenu
 from pages.gpa_page import GpaPage
+from pages.homeworkPlanner import HomeworkPlanner
 import matplotlib.pyplot as plt
 
 class StudentAssistantApp(Tk):
@@ -14,7 +15,7 @@ class StudentAssistantApp(Tk):
 
         self.frames = {}
 
-        for F in (MainMenu, GpaPage):
+        for F in (MainMenu, GpaPage, HomeworkPlanner):
             page = F(parent=container, controller=self)
             self.frames[F.__name__] = page
             page.place(relwidth=1, relheight=1)
