@@ -15,7 +15,7 @@ class HomeworkPlanner(Frame, Resize):
         # ---------- data ----------
         self.tasks = []   # each task: {"subject": str, "deadline": str, "status": str, "details": str}
         self.current_page = 0
-        self.page_size = 4  # 每页显示数量
+        self.page_size = 4  
 
         # ---------- title ----------
         self.title_label = Label(self, text="Homework Planner", bg="#f0f4f8", fg="#2c3e50")
@@ -31,7 +31,7 @@ class HomeworkPlanner(Frame, Resize):
             "Not Started", 
             "In Progress", 
             "Completed", 
-            command=lambda _: self.apply_filter()
+            command=lambda _: self.apply_filter() # calling apply_filter every time when select an option
         )
         self.filter_menu.pack(pady=5)
 
@@ -39,7 +39,7 @@ class HomeworkPlanner(Frame, Resize):
         self.input_frame = Frame(self, bg="#f0f4f8")
         self.input_frame.pack(padx=10, pady=5, fill="x")
 
-        for c in range(5):
+        for c in range(4):
             self.input_frame.grid_columnconfigure(c, weight=1, uniform="inputs")
         self.input_frame.grid_columnconfigure(4, weight=0)
 
@@ -83,6 +83,10 @@ class HomeworkPlanner(Frame, Resize):
 
         self.next_btn = Button(self.pagination_frame, text="Next", command=self.next_page, bg="#3498db", fg="white")
         self.next_btn.pack(side="left", padx=5)
+
+        # ---------- statistics ----------
+        self.stats_label = Label(self, text="", bg="#f0f4f8", fg="#2c3e50")
+        self.stats_label.pack(pady=5)
 
         # ---------- back button ----------
         self.back_menu_btn = Button(self, text="Back to Menu", command=self.controller.show_main_menu, bg="#95a5a6", fg="white")
@@ -181,7 +185,9 @@ class HomeworkPlanner(Frame, Resize):
             except Exception:
                 return False
 
-        def _key(t): return (t["deadline"], t["subject"].lower())
+        def _key(t): 
+            return (t["deadline"], t["subject"].lower())
+
         self.filtered_tasks = [t for t in sorted(self.tasks, key=_key) if (
             filter_choice == "All" or
             (filter_choice == "About to Expire" and about_to_expire(t)) or
@@ -190,19 +196,19 @@ class HomeworkPlanner(Frame, Resize):
             (filter_choice == "Completed" and t["status"] == "Completed")
         )]
 
-        # 清空旧内容
+        # delete old content
         for child in self.task_frame.winfo_children():
-            child.destroy()
+                child.destroy()
 
-        # 分页切片
+        # paging slices
         start = self.current_page * self.page_size
         end = start + self.page_size
         page_tasks = self.filtered_tasks[start:end]
 
-        for task in page_tasks:
-            self._display_task(task)
+        for i, task in enumerate(page_tasks, start=1):
+            self._display_task(task, i + start)
 
-        # 更新状态显示
+        # update status display
         shown = len(page_tasks)
         total = len(self.filtered_tasks)
         max_page = (total - 1) // self.page_size + 1 if total > 0 else 1
@@ -211,15 +217,35 @@ class HomeworkPlanner(Frame, Resize):
             text=f"Page {current_page_display}/{max_page}   |   {shown} of {total}"
         )
 
+        # update statistics message 
+        total_tasks = len(self.tasks)
+        completed = sum(1 for t in self.tasks if t["status"] == "Completed")
+        about_to_expire_count = sum(1 for t in self.tasks if about_to_expire(t))
+        self.stats_label.config(
+            text=f"Total: {total_tasks}   |   Completed: {completed}   |   About to Expire: {about_to_expire_count}"
+        )
+
     # ========== Rendering ==========
-    def _display_task(self, task):
+    def _display_task(self, task, index):
         frame = Frame(self.task_frame, bg="#ecf0f1", bd=1, relief="solid", padx=8, pady=6)
         frame.pack(fill="x", pady=4)
 
         top = Frame(frame, bg="#ecf0f1")
         top.pack(fill="x")
-        Label(top, text=f"Subject: {task['subject']}", bg="#ecf0f1", anchor="w").pack(side="left", fill="x", expand=True)
-        Label(top, text=f"Deadline: {task['deadline']}", bg="#ecf0f1", anchor="e").pack(side="right")
+
+        Label(top, text=f"{index}. {task['subject']}", bg="#ecf0f1", anchor="w").pack(side="left", fill="x", expand=True)
+
+        # if expired, display red color
+        try:
+            deadline_date = datetime.strptime(task["deadline"], "%Y-%m-%d").date()
+            if deadline_date < datetime.now().date() and task["status"] != "Completed":
+                deadline_color = "red"
+            else:
+                deadline_color = "black"
+        except:
+            deadline_color = "black"
+
+        Label(top, text=f"Deadline: {task['deadline']}", bg="#ecf0f1", fg=deadline_color, anchor="e").pack(side="right")
 
         Label(frame, text=f"Status: {task['status']}", bg="#ecf0f1", anchor="w").pack(fill="x")
         if task["details"]:
