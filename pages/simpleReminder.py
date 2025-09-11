@@ -2,8 +2,11 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime, time as dtime
 import calendar
+import os
 
-#list of reminder
+DATA_FILE = "reminders.txt"
+
+# reminder_list
 class NormalReminder:
     def __init__(self, dt: datetime, description: str):
         self.dt = dt
@@ -17,20 +20,22 @@ class RepeatReminder:
         self.description = description
         self.id = f"R-{weekday}-{at_time.strftime('%H%M')}-{hash(description)}"
 
-#call main function
+# main function
 class SimpleReminder(tk.Frame):
     def __init__(self, parent, controller=None):
         super().__init__(parent)
         self.controller = controller or self
 
-        # save reminder list
         self.normal_reminders = []
         self.repeat_reminders = []
+
+        # load the file that save
+        self.load_from_file()
 
         main_layout = tk.Frame(self)
         main_layout.pack(fill="both", expand=True)
 
-        # left side pasge
+        # left side
         left_frame = tk.Frame(main_layout, width=220, bd=2, relief="ridge")
         left_frame.pack(side="left", fill="y")
         left_frame.pack_propagate(False)
@@ -47,7 +52,7 @@ class SimpleReminder(tk.Frame):
         tk.Button(left_frame, text="Back to Main Menu", width=18,
                   command=lambda: self.controller.show_frame("MainMenu")).pack(pady=10)
 
-        # right side page
+        # right side
         self.right_frame = tk.Frame(main_layout, bd=2, relief="ridge")
         self.right_frame.pack(side="left", fill="both", expand=True)
 
@@ -57,30 +62,34 @@ class SimpleReminder(tk.Frame):
             self.right_pages[F.__name__] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        # default show Add reminder page
         self.show_right("AddReminderPage")
 
         self.check_reminders()
 
     def show_right(self, name):
         frame = self.right_pages[name]
+        if hasattr(frame, "show"):  # call show() if page has it
+            frame.show()
         frame.tkraise()
 
     # check reminders
     def check_reminders(self):
         now = datetime.now()
 
-        due_normals = [r for r in self.normal_reminders if abs((r.dt - now).total_seconds()) < 60]
+        # one time reminders
+        due_normals = [r for r in self.normal_reminders if abs((r.dt - now).total_seconds()) < 6]
         for r in due_normals:
             self.show_popup(r.description)
             self.normal_reminders = [x for x in self.normal_reminders if x.id != r.id]
+            self.save_to_file()
 
+        # repeat reminders
         for r in self.repeat_reminders:
             if r.weekday == now.weekday():
-                if abs((datetime.combine(now.date(), r.at_time) - now).total_seconds()) < 60:
+                if abs((datetime.combine(now.date(), r.at_time) - now).total_seconds()) < 6:
                     self.show_popup(r.description)
 
-        self.after(30000, self.check_reminders)
+        self.after(5000, self.check_reminders)
 
     def show_popup(self, description):
         popup = tk.Toplevel(self)
@@ -89,7 +98,35 @@ class SimpleReminder(tk.Frame):
         tk.Label(popup, text=description, font=("Arial", 12, "bold")).pack(pady=15)
         tk.Button(popup, text="OK", command=popup.destroy).pack(pady=5)
 
-# add one time reminder
+    #  save file to reminders_txt
+    def save_to_file(self):
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            for r in self.normal_reminders:
+                f.write(f"N|{r.dt.strftime('%Y-%m-%d %H:%M')}|{r.description}\n")
+            for r in self.repeat_reminders:
+                f.write(f"R|{r.weekday}|{r.at_time.strftime('%H:%M')}|{r.description}\n")
+
+    def load_from_file(self):
+        self.normal_reminders.clear() #clear reminders
+        self.repeat_reminders.clear()
+
+        if not os.path.exists(DATA_FILE):
+            return
+
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            for line in f:
+                parts = line.strip().split("|")
+                if not parts:
+                    continue
+                if parts[0] == "N" and len(parts) == 3:
+                    dt = datetime.strptime(parts[1], "%Y-%m-%d %H:%M")
+                    self.normal_reminders.append(NormalReminder(dt, parts[2]))
+                elif parts[0] == "R" and len(parts) == 4:
+                    weekday = int(parts[1])
+                    at_time = datetime.strptime(parts[2], "%H:%M").time()
+                    self.repeat_reminders.append(RepeatReminder(weekday, at_time, parts[3]))
+
+# add one time reminder function
 class AddReminderPage(tk.Frame):
     def __init__(self, parent, controller: SimpleReminder):
         super().__init__(parent)
@@ -101,7 +138,7 @@ class AddReminderPage(tk.Frame):
 
         tk.Label(self, text="Add Reminder", font=("Arial", 14, "bold")).pack(pady=10)
 
-        #show calendar
+        # calendar
         self.header = tk.Label(self, font=("Arial", 12, "bold"))
         self.header.pack()
 
@@ -129,6 +166,7 @@ class AddReminderPage(tk.Frame):
 
         self.draw_calendar()
 
+    # define the calender
     def draw_calendar(self):
         for w in self.calendar_frame.winfo_children():
             w.destroy()
@@ -193,11 +231,12 @@ class AddReminderPage(tk.Frame):
         desc = self.desc_entry.get() or "-"
         r = NormalReminder(reminder_dt, desc)
         self.controller.normal_reminders.append(r)
+        self.controller.save_to_file()
 
         messagebox.showinfo("Success", "Reminder saved!")
-        self.controller.right_pages["ViewReminderPage"].show()
+        self.controller.show_right("ViewReminderPage")
 
-# add repeat reminder
+# add repeat reminder function
 class AddRepeatPage(tk.Frame):
     def __init__(self, parent, controller: SimpleReminder):
         super().__init__(parent)
@@ -214,7 +253,6 @@ class AddRepeatPage(tk.Frame):
         self.desc_entry = tk.Entry(self, width=30)
         self.desc_entry.pack(pady=5)
 
-        #show day
         tk.Label(self, text="Day of Week:").pack()
         self.day_var = tk.StringVar(value="Monday")
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -236,11 +274,12 @@ class AddRepeatPage(tk.Frame):
 
         r = RepeatReminder(weekday, t, desc)
         self.controller.repeat_reminders.append(r)
+        self.controller.save_to_file()
 
         messagebox.showinfo("Success", "Repeat reminder added!")
-        self.controller.right_pages["ViewReminderPage"].show()
+        self.controller.show_right("ViewReminderPage")
 
-# view the reminder that have save
+# view reminder function
 class ViewReminderPage(tk.Frame):
     def __init__(self, parent, controller: SimpleReminder):
         super().__init__(parent)
@@ -255,14 +294,14 @@ class ViewReminderPage(tk.Frame):
         for w in self.list_frame.winfo_children():
             w.destroy()
 
-        #show one time reminder
+        # show one time reminders
         for r in sorted(self.controller.normal_reminders, key=lambda x: x.dt):
             f = tk.Frame(self.list_frame, bd=1, relief="solid", pady=2)
             f.pack(fill="x", padx=5, pady=2)
             tk.Label(f, text=f"[Normal] | {r.dt.strftime('%Y-%m-%d %H:%M')} | {r.description}").pack(side="left", padx=5)
             tk.Button(f, text="X", command=lambda rid=r.id: self.delete("normal", rid)).pack(side="right")
 
-        # show repeat reminder
+        # show repeat reminders
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         for r in sorted(self.controller.repeat_reminders, key=lambda x: (x.weekday, x.at_time)):
             f = tk.Frame(self.list_frame, bd=1, relief="solid", pady=2)
@@ -270,11 +309,12 @@ class ViewReminderPage(tk.Frame):
             tk.Label(f, text=f"[Repeat] | {days[r.weekday]} | {r.at_time.strftime('%H:%M')} | {r.description}").pack(side="left", padx=5)
             tk.Button(f, text="X", command=lambda rid=r.id: self.delete("repeat", rid)).pack(side="right")
 
-    #delete reminders
-    def delete(self, mode, rid): 
-        if mode == "normal": 
-            self.controller.normal_reminders = [r for r in self.controller.normal_reminders if r.id != rid] 
-        else: 
-            self.controller.repeat_reminders = [r for r in self.controller.repeat_reminders if r.id != rid] 
-            
+    # delete function
+    def delete(self, mode, rid):
+        if mode == "normal":
+            self.controller.normal_reminders = [r for r in self.controller.normal_reminders if r.id != rid]
+        else:
+            self.controller.repeat_reminders = [r for r in self.controller.repeat_reminders if r.id != rid]
+
+        self.controller.save_to_file()
         self.show()
