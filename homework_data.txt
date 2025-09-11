@@ -1,6 +1,7 @@
-English|2025-09-11|Not Started|Essay writing: "How to become a good student"
+English|2025-09-10|In Progress|Essay writing: "How to become a good student"
 Ethics in computing|2025-12-20|Not Started|Assignment report
-Civic Consultation and volunteer|2025-09-12|Completed|CCV assignment report
+Civic Consultation and volunteer|2025-09-12|Completed|CCV assignment report 11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222223333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333
 Discrete math|2025-11-24|Not Started|Finish tutorial 5 question 1-8
 Introduction to interface design|2025-10-30|Not Started|improve the UI of moovit app
 Problem solving and programming|2025-10-13|Not Started|finish practical 7 question 3-5
+123|2025-09-15|Not Started|2

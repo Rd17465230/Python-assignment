@@ -28,34 +28,35 @@ class SimpleReminder(tk.Frame):
 
         self.normal_reminders = []
         self.repeat_reminders = []
-
-        # load the file that save
         self.load_from_file()
 
-        main_layout = tk.Frame(self)
-        main_layout.pack(fill="both", expand=True)
+        # =========== 主布局：左右两栏 =============
+        # 改成 grid，让左右都能拉伸
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
 
-        # left side
-        left_frame = tk.Frame(main_layout, width=220, bd=2, relief="ridge")
-        left_frame.pack(side="left", fill="y")
-        left_frame.pack_propagate(False)
+        # 左边栏固定宽度
+        left_frame = tk.Frame(self, width=220, bd=2, relief="ridge")
+        left_frame.grid(row=0, column=0, sticky="ns")
+        left_frame.grid_propagate(False)
 
         tk.Label(left_frame, text="Simple Reminder App", font=("Arial", 14, "bold")).pack(pady=20)
+        tk.Button(left_frame, text="Add Reminder",
+                  command=lambda: self.show_right("AddReminderPage")).pack(pady=10, fill="x")
+        tk.Button(left_frame, text="Add Repeat Reminder",
+                  command=lambda: self.show_right("AddRepeatPage")).pack(pady=10, fill="x")
+        tk.Button(left_frame, text="View Reminders",
+                  command=lambda: self.show_right("ViewReminderPage")).pack(pady=10, fill="x")
+        tk.Button(left_frame, text="Back to Main Menu",
+                  command=lambda: self.controller.show_frame("MainMenu")).pack(pady=10, fill="x")
 
-        tk.Button(left_frame, text="Add Reminder", width=18,
-                  command=lambda: self.show_right("AddReminderPage")).pack(pady=10)
-        tk.Button(left_frame, text="Add Repeat Reminder", width=18,
-                  command=lambda: self.show_right("AddRepeatPage")).pack(pady=10)
-        tk.Button(left_frame, text="View Reminders", width=18,
-                  command=lambda: self.show_right("ViewReminderPage")).pack(pady=10)
+        # 右边可扩展区域
+        self.right_frame = tk.Frame(self, bd=2, relief="ridge")
+        self.right_frame.grid(row=0, column=1, sticky="nsew")   # 关键：sticky 全方向
+        self.right_frame.grid_rowconfigure(0, weight=1)
+        self.right_frame.grid_columnconfigure(0, weight=1)
 
-        tk.Button(left_frame, text="Back to Main Menu", width=18,
-                  command=lambda: self.controller.show_frame("MainMenu")).pack(pady=10)
-
-        # right side
-        self.right_frame = tk.Frame(main_layout, bd=2, relief="ridge")
-        self.right_frame.pack(side="left", fill="both", expand=True)
-
+        # 右侧页面
         self.right_pages = {}
         for F in (AddReminderPage, AddRepeatPage, ViewReminderPage):
             frame = F(self.right_frame, self)
@@ -63,7 +64,7 @@ class SimpleReminder(tk.Frame):
             frame.grid(row=0, column=0, sticky="nsew")
 
         self.show_right("AddReminderPage")
-
+        
         self.check_reminders()
 
     def show_right(self, name):
