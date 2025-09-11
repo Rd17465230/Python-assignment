@@ -15,7 +15,7 @@ class HomeworkPlanner(Frame, Resize):
         # ---------- data ----------
         self.tasks = []   # each task: {"subject": str, "deadline": str, "status": str, "details": str}
         self.current_page = 0
-        self.page_size = 4  
+        self.page_size = 3
 
         # ---------- title ----------
         self.title_label = Label(self, text="Homework Planner", bg="#f0f4f8", fg="#2c3e50")
