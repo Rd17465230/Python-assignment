@@ -21,7 +21,7 @@ class HomePage(Frame, Resize):
 
         self.title = Label(self,
                            text="Welcome to TAR UMT Student Assistant",
-                           bg="#ADD8E6")
+                           bg="#ADD8E6",font=("Arial", 25, "bold"))
         self.title.place(relx=0.5, rely=0.2,
                          relwidth=0.5, relheight=0.1,
                          anchor="center")
@@ -35,8 +35,6 @@ class HomePage(Frame, Resize):
             self.bg_image = ImageTk.PhotoImage(resized_img)
             self.bg_label.configure(image=self.bg_image)
             self.bg_label.image = self.bg_image
-
-        self.title.configure(font=("Arial", 12, "bold"))
 
 class StudentAssistantApp(Tk):
     def __init__(self):
@@ -54,7 +52,8 @@ class StudentAssistantApp(Tk):
         self.frames_container.pack(side="top", fill="both", expand=True)
 
         self.taskbar = TaskBar(self.root_container, self)
-        self.taskbar.pack_forget()
+        self.taskbar.place(relx=0, rely=1.0, relwidth=1, anchor='sw')
+        self.taskbar.lower()
 
         self.frames = {}
 
@@ -71,6 +70,11 @@ class StudentAssistantApp(Tk):
         self.show_frame("LoginPage")
 
     def show_frame(self, page_name):
+        if page_name == "GpaPage" or page_name == "HomePage":
+            self.taskbar.lift() 
+        else:
+            self.taskbar.lower()
+
         if page_name not in self.frames:
             if page_name == "GpaPage":
                 self.frames[page_name] = GpaPage(self.frames_container, self)
@@ -81,11 +85,6 @@ class StudentAssistantApp(Tk):
             self.frames[page_name].place(relwidth=1, relheight=1)
 
         self.frames[page_name].tkraise()
-
-        if (page_name == "GpaPage" or page_name == "HomePage"):
-            self.taskbar.pack(side="bottom", fill="x")
-        else:
-            self.taskbar.pack_forget()
 
     def show_main_menu(self):
         self.show_frame("HomePage")
