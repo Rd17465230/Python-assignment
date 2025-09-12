@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from resize import Resize
 from datetime import datetime
+from tkcalendar import DateEntry
 import os
 
 DATA_FILE = "homework_data.txt"
@@ -15,57 +16,85 @@ class HomeworkPlanner(Frame, Resize):
         # ---------- data ----------
         self.tasks = []   # each task: {"subject": str, "deadline": str, "status": str, "details": str}
         self.current_page = 0
-        self.page_size = 3
+        self.page_size = 4
 
         # ---------- title ----------
-        self.title_label = Label(self, text="Homework Planner", bg="#f0f4f8", fg="#2c3e50")
-        self.title_label.pack(pady=10)
+        self.today_date = datetime.today().strftime("%Y-%m-%d")
 
-        # ---------- filter menu ----------
-        self.filter_var = StringVar(value="All")
-        self.filter_menu = OptionMenu(
-            self, 
-            self.filter_var, 
-            "All", 
-            "About to Expire", 
-            "Not Started", 
-            "In Progress", 
-            "Completed", 
-            command=lambda _: self.apply_filter() # calling apply_filter every time when select an option
-        )
-        self.filter_menu.pack(pady=5)
+        self.title_label = Label(self, text=f"Homework Planner\t\t\tToday: {self.today_date}", bg="#f0f4f8", fg="#2c3e50")
+        self.title_label.pack(side="top",pady=10)
 
         # ---------- input area ----------
         self.input_frame = Frame(self, bg="#f0f4f8")
         self.input_frame.pack(padx=10, pady=5, fill="x")
 
-        for c in range(4):
-            self.input_frame.grid_columnconfigure(c, weight=1, uniform="inputs")
-        self.input_frame.grid_columnconfigure(4, weight=0)
+        # Configure columns to handle content correctly
+        # Column 0: Filter menu (no weight, takes its size)
+        # Column 1: Labels (e.g., Subject, Status) (no weight, takes its size)
+        # Column 2: Entry widgets (e.g., Subject entry, Status menu) (weight=1, expands)
+        # Column 3: Labels (e.g., Deadline, Details) (no weight, takes its size)
+        # Column 4: Entry widgets (e.g., Deadline entry, Details entry) (weight=1, expands)
+        # Column 5: Add button (no weight)
+        self.input_frame.grid_columnconfigure(0, weight=0)
+        self.input_frame.grid_columnconfigure(1, weight=0)
+        self.input_frame.grid_columnconfigure(2, weight=1)
+        self.input_frame.grid_columnconfigure(3, weight=0)
+        self.input_frame.grid_columnconfigure(4, weight=1)
+        self.input_frame.grid_columnconfigure(5, weight=0)
 
+        
+
+        # Row 0: Subject and Deadline
         self.lbl_subject = Label(self.input_frame, text="Subject:", bg="#f0f4f8", anchor="e")
-        self.lbl_subject.grid(row=0, column=0, padx=5, pady=2, sticky="e")
+        self.lbl_subject.grid(row=0, column=1, padx=5, pady=2, sticky="e")
         self.subject_entry = Entry(self.input_frame)
-        self.subject_entry.grid(row=0, column=1, padx=5, pady=2, sticky="we")
+        self.subject_entry.grid(row=0, column=2, padx=5, pady=2, sticky="we")
 
-        self.lbl_deadline = Label(self.input_frame, text="Deadline (YYYY-MM-DD):", bg="#f0f4f8", anchor="e")
-        self.lbl_deadline.grid(row=0, column=2, padx=5, pady=2, sticky="e")
-        self.deadline_entry = Entry(self.input_frame)
-        self.deadline_entry.grid(row=0, column=3, padx=5, pady=2, sticky="we")
+        self.lbl_deadline = Label(self.input_frame, text="Deadline:", bg="#f0f4f8", anchor="e")
+        self.lbl_deadline.grid(row=0, column=3, padx=5, pady=2, sticky="e")
+        self.deadline_entry = DateEntry(
+            self.input_frame,
+            width=12,
+            background='darkblue',
+            foreground='white',
+            borderwidth=2,
+            date_pattern="yyyy-mm-dd",
+            selectmode="day"  
+
+        )
+        self.deadline_entry.grid(row=0, column=4, padx=5, pady=2, sticky="we")
+        self.deadline_entry.focus_set()
+
+        # Add button
+        self.add_btn = Button(self.input_frame, text="Add Homework", command=self.add_task, bg="#3498db", fg="white")
+        self.add_btn.grid(row=0, column=5, rowspan=2, padx=8, pady=2, sticky="ns")
+
+        # Row 1: Filter, Status, and Details
+        self.filter_var = StringVar(value="All")
+        self.filter_menu = OptionMenu(
+            self.input_frame,
+            self.filter_var,
+            "All",
+            "About to Expire",
+            "Not Started",
+            "In Progress",
+            "Completed",
+            command=lambda _: self.apply_filter()
+        )
+        self.filter_menu.config(width=12)
+        self.filter_menu.grid(row=1, column=0, padx=8, pady=2, sticky="w")
 
         self.lbl_status = Label(self.input_frame, text="Status:", bg="#f0f4f8", anchor="e")
-        self.lbl_status.grid(row=1, column=0, padx=5, pady=2, sticky="e")
+        self.lbl_status.grid(row=1, column=1, padx=0, pady=2, sticky="e")
         self.status_var = StringVar(value="Not Started")
         self.status_menu = OptionMenu(self.input_frame, self.status_var, "Not Started", "In Progress", "Completed")
-        self.status_menu.grid(row=1, column=1, padx=5, pady=2, sticky="w")
+        self.status_menu.config(width=12)
+        self.status_menu.grid(row=1, column=2, padx=5, pady=2, sticky="we")  
 
         self.lbl_details = Label(self.input_frame, text="Details:", bg="#f0f4f8", anchor="e")
-        self.lbl_details.grid(row=1, column=2, padx=5, pady=2, sticky="e")
+        self.lbl_details.grid(row=1, column=3, padx=5, pady=2, sticky="e")
         self.details_entry = Entry(self.input_frame)
-        self.details_entry.grid(row=1, column=3, padx=5, pady=2, sticky="we")
-
-        self.add_btn = Button(self.input_frame, text="Add Homework", command=self.add_task, bg="#3498db", fg="white")
-        self.add_btn.grid(row=0, column=4, rowspan=2, padx=8, pady=2, sticky="ns")
+        self.details_entry.grid(row=1, column=4, padx=5, pady=2, sticky="we")
 
         # ---------- task list container ----------
         self.task_frame = Frame(self, bg="#f0f4f8")
@@ -75,7 +104,7 @@ class HomeworkPlanner(Frame, Resize):
         self.pagination_frame = Frame(self, bg="#f0f4f8")
         self.pagination_frame.pack(pady=5)
 
-        self.prev_btn = Button(self.pagination_frame, text="Previous", command=self.prev_page, bg="#95a5a6", fg="white")
+        self.prev_btn = Button(self.pagination_frame, text="Previous", command=self.prev_page, bg="#3498db", fg="white")
         self.prev_btn.pack(side="left", padx=5)
 
         self.page_status = Label(self.pagination_frame, text="", bg="#f0f4f8", fg="#2c3e50")
@@ -133,6 +162,8 @@ class HomeworkPlanner(Frame, Resize):
         except ValueError:
             messagebox.showwarning("Input Error", "Deadline must be in format YYYY-MM-DD.")
             return
+        
+        subject = self.subject_entry.get().strip().capitalize()
 
         self.tasks.append({"subject": subject, "deadline": deadline, "status": status, "details": details})
 
@@ -185,7 +216,7 @@ class HomeworkPlanner(Frame, Resize):
             except Exception:
                 return False
 
-        def _key(t): 
+        def _key(t):
             return (t["deadline"], t["subject"].lower())
 
         self.filtered_tasks = [t for t in sorted(self.tasks, key=_key) if (
@@ -198,7 +229,7 @@ class HomeworkPlanner(Frame, Resize):
 
         # delete old content
         for child in self.task_frame.winfo_children():
-                child.destroy()
+            child.destroy()
 
         # paging slices
         start = self.current_page * self.page_size
@@ -217,7 +248,7 @@ class HomeworkPlanner(Frame, Resize):
             text=f"Page {current_page_display}/{max_page}   |   {shown} of {total}"
         )
 
-        # update statistics message 
+        # update statistics message
         total_tasks = len(self.tasks)
         completed = sum(1 for t in self.tasks if t["status"] == "Completed")
         about_to_expire_count = sum(1 for t in self.tasks if about_to_expire(t))
@@ -235,11 +266,13 @@ class HomeworkPlanner(Frame, Resize):
 
         Label(top, text=f"{index}. {task['subject']}", bg="#ecf0f1", anchor="w").pack(side="left", fill="x", expand=True)
 
-        # if expired, display red color
+        # if expired, display red color.
         try:
             deadline_date = datetime.strptime(task["deadline"], "%Y-%m-%d").date()
             if deadline_date < datetime.now().date() and task["status"] != "Completed":
                 deadline_color = "red"
+            elif task["status"] == "Completed":
+                deadline_color = "green"
             else:
                 deadline_color = "black"
         except:
@@ -260,28 +293,35 @@ class HomeworkPlanner(Frame, Resize):
         Button(btns, text="Delete", bg="#e74c3c", fg="white", command=lambda: self.delete_task(task)).pack(side="left", padx=4)
 
     def edit_task(self, task):
-        edit_win = Toplevel(self)
-        edit_win.title("Edit Homework")
-        edit_win.geometry("400x250")
-        edit_win.configure(bg="#f0f4f8")
+        self.edit_window = Toplevel(self)
+        self.edit_window.title("Edit Homework")
+        self.edit_window.geometry("400x250")
+        self.edit_window.configure(bg="#f0f4f8")
 
-        Label(edit_win, text="Subject:", bg="#f0f4f8").grid(row=0, column=0, padx=10, pady=5, sticky="e")
-        subject_entry = Entry(edit_win, width=25)
+        self.edit_window.transient(self)   # stay above parent
+        self.edit_window.grab_set()        # block main window
+
+        messagebox.showinfo("Edit Mode", "You are now editing a homework task.\n"
+                                "Please finish editing or close this window before continuing.")
+
+        Label(self.edit_window, text="Subject:", bg="#f0f4f8").grid(row=0, column=0, padx=10, pady=5, sticky="e")
+        subject_entry = Entry(self.edit_window, width=25)
         subject_entry.grid(row=0, column=1, padx=10, pady=5)
         subject_entry.insert(0, task["subject"])
 
-        Label(edit_win, text="Deadline (YYYY-MM-DD):", bg="#f0f4f8").grid(row=1, column=0, padx=10, pady=5, sticky="e")
-        deadline_entry = Entry(edit_win, width=25)
+        Label(self.edit_window, text="Deadline (YYYY-MM-DD):", bg="#f0f4f8").grid(row=1, column=0, padx=10, pady=5, sticky="e")
+        deadline_entry = DateEntry(self.edit_window, width=25, date_pattern="yyyy-mm-dd")
         deadline_entry.grid(row=1, column=1, padx=10, pady=5)
-        deadline_entry.insert(0, task["deadline"])
+        deadline_entry.set_date(datetime.strptime(task["deadline"], "%Y-%m-%d"))
 
-        Label(edit_win, text="Status:", bg="#f0f4f8").grid(row=2, column=0, padx=10, pady=5, sticky="e")
+        Label(self.edit_window, text="Status:", bg="#f0f4f8").grid(row=2, column=0, padx=10, pady=5, sticky="e")
         status_var = StringVar(value=task["status"])
-        status_menu = OptionMenu(edit_win, status_var, "Not Started", "In Progress", "Completed")
+        status_menu = OptionMenu(self.edit_window, status_var, "Not Started", "In Progress", "Completed")
+        status_menu.config(width=12)
         status_menu.grid(row=2, column=1, padx=10, pady=5, sticky="w")
 
-        Label(edit_win, text="Details:", bg="#f0f4f8").grid(row=3, column=0, padx=10, pady=5, sticky="e")
-        details_entry = Entry(edit_win, width=25)
+        Label(self.edit_window, text="Details:", bg="#f0f4f8").grid(row=3, column=0, padx=10, pady=5, sticky="e")
+        details_entry = Entry(self.edit_window, width=25)
         details_entry.grid(row=3, column=1, padx=10, pady=5)
         details_entry.insert(0, task["details"])
 
@@ -295,16 +335,16 @@ class HomeworkPlanner(Frame, Resize):
                 messagebox.showwarning("Input Error", "Deadline must be YYYY-MM-DD.")
                 return
 
-            task["subject"] = subject_entry.get().strip()
+            task["subject"] = subject_entry.get().strip().capitalize()
             task["deadline"] = deadline_entry.get().strip()
             task["status"] = status_var.get()
             task["details"] = details_entry.get().strip()
 
             self.save_to_file()
             self.apply_filter()
-            edit_win.destroy()
+            self.edit_window.destroy()
 
-        Button(edit_win, text="Save", command=save_changes, bg="#27ae60", fg="white").grid(row=4, column=0, columnspan=2, pady=15)
+        Button(self.edit_window, text="Save", command=save_changes, bg="#27ae60", fg="white").grid(row=4, column=0, columnspan=2, pady=15)
 
     # ========== Resize abstract method ==========
     def update_layout(self):
