@@ -1,0 +1,94 @@
+[
+  {
+    "courses": [
+      {
+        "name": "PSP",
+        "credit": "3",
+        "grade": "A+"
+      },
+      {
+        "name": "DDA",
+        "credit": "3",
+        "grade": "A"
+      },
+      {
+        "name": "ENG",
+        "credit": "3",
+        "grade": "A-"
+      },
+      {
+        "name": "ITC",
+        "credit": "3",
+        "grade": "B+"
+      },
+      {
+        "name": "SAD",
+        "credit": "3",
+        "grade": "A-"
+      },
+      {
+        "name": "Calculus",
+        "credit": "3",
+        "grade": "B-"
+      },
+      {
+        "name": "IAC",
+        "credit": "2",
+        "grade": "A"
+      }
+    ]
+  },
+  {
+    "courses": [
+      {
+        "name": "FCN",
+        "credit": "4",
+        "grade": "A+"
+      },
+      {
+        "name": "PS",
+        "credit": "3",
+        "grade": "B+"
+      },
+      {
+        "name": "CA",
+        "credit": "3",
+        "grade": "A"
+      }
+    ]
+  },
+  {
+    "courses": [
+      {
+        "name": "OOPT",
+        "credit": "4",
+        "grade": "A"
+      },
+      {
+        "name": "Interface",
+        "credit": "3",
+        "grade": "A-"
+      },
+      {
+        "name": "Academic English",
+        "credit": "3",
+        "grade": "B+"
+      },
+      {
+        "name": "Web",
+        "credit": "4",
+        "grade": "A-"
+      },
+      {
+        "name": "Math",
+        "credit": "3",
+        "grade": "A"
+      },
+      {
+        "name": "PEP",
+        "credit": "3",
+        "grade": "A"
+      }
+    ]
+  }
+]
