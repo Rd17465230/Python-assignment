@@ -178,6 +178,7 @@ class HomeworkPlanner(Frame, Resize):
 
     def update_status(self, task, new_status):
         task["status"] = new_status
+        messagebox.showinfo("Update status info", "Status updated successfully.")
         self.save_to_file()
         self.apply_filter()
 
@@ -342,6 +343,8 @@ class HomeworkPlanner(Frame, Resize):
             task["deadline"] = deadline_entry.get().strip()
             task["status"] = status_var.get()
             task["details"] = details_entry.get().strip()
+
+            messagebox.showinfo("Info", "Saved successfully.")
 
             self.save_to_file()
             self.apply_filter()
