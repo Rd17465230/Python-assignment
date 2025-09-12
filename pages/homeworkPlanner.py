@@ -184,6 +184,9 @@ class HomeworkPlanner(Frame, Resize):
     def delete_task(self, task):
         if task in self.tasks:
             self.tasks.remove(task)
+
+        messagebox.showinfo("Delete task info", "Task deleted successfully.")
+
         self.save_to_file()
         self.apply_filter()
 
