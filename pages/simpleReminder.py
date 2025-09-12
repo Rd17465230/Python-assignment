@@ -48,7 +48,7 @@ class SimpleReminder(tk.Frame):
         tk.Button(left_frame, text="View Reminders",
                   command=lambda: self.show_right("ViewReminderPage")).pack(pady=10, fill="x")
         tk.Button(left_frame, text="Back to Main Menu",
-                  command=lambda: self.controller.show_frame("MainMenu")).pack(pady=10, fill="x")
+                  command=lambda: self.controller.show_main_menu()).pack(pady=10, fill="x")
 
         # 右边可扩展区域
         self.right_frame = tk.Frame(self, bd=2, relief="ridge")
