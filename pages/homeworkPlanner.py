@@ -183,9 +183,11 @@ class HomeworkPlanner(Frame, Resize):
         self.apply_filter()
 
     def delete_task(self, task):
-        if task in self.tasks:
-            self.tasks.remove(task)
-
+        confirm = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete '{task['subject']}'?")
+        if confirm:  
+            if task in self.tasks:
+                self.tasks.remove(task)
+            
         messagebox.showinfo("Delete task info", "Task deleted successfully.")
 
         self.save_to_file()
