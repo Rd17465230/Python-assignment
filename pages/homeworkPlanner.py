@@ -173,6 +173,8 @@ class HomeworkPlanner(Frame, Resize):
         self.status_var.set("Not Started")
         self.subject_entry.focus_set()
 
+        messagebox.showinfo("Add task info", "Task added successfully.")
+
         self.save_to_file()
         self.apply_filter()
 
