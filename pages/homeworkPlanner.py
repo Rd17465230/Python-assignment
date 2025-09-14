@@ -173,18 +173,23 @@ class HomeworkPlanner(Frame, Resize):
         self.status_var.set("Not Started")
         self.subject_entry.focus_set()
 
+        messagebox.showinfo("Add task info", "Task added successfully.")
+
         self.save_to_file()
         self.apply_filter()
 
     def update_status(self, task, new_status):
         task["status"] = new_status
+        messagebox.showinfo("Update status info", "Status updated successfully.")
         self.save_to_file()
         self.apply_filter()
 
     def delete_task(self, task):
-        if task in self.tasks:
-            self.tasks.remove(task)
-
+        confirm = messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete '{task['subject']}'?")
+        if confirm:  
+            if task in self.tasks:
+                self.tasks.remove(task)
+            
         messagebox.showinfo("Delete task info", "Task deleted successfully.")
 
         self.save_to_file()
@@ -342,6 +347,8 @@ class HomeworkPlanner(Frame, Resize):
             task["deadline"] = deadline_entry.get().strip()
             task["status"] = status_var.get()
             task["details"] = details_entry.get().strip()
+
+            messagebox.showinfo("Info", "Saved successfully.")
 
             self.save_to_file()
             self.apply_filter()
