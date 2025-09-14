@@ -63,7 +63,7 @@ class GpaPage(Frame):
 
         Button(
             self.control_frame,
-            text="  Calculate CGPA",
+            text="  Calculate",
             image=self.icon_calc,
             compound="left",
             bg="#e67e22", fg="white",
