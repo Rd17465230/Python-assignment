@@ -334,8 +334,17 @@ class HomeworkPlanner(Frame, Resize):
         details_entry.insert(0, task["details"])
 
         def save_changes():
+            subject = subject_entry.get().strip()
+            deadline = deadline_entry.get().strip()
+            details = details_entry.get().strip()
+            status = status_var.get()
+            
+
+            if not subject or not deadline:
+                messagebox.showwarning("Input Error", "Please enter both subject and deadline.")
+                return
             try:
-                deadline_date = datetime.strptime(deadline_entry.get().strip(), "%Y-%m-%d").date()
+                deadline_date = datetime.strptime(deadline, "%Y-%m-%d").date()
                 if deadline_date < datetime.now().date():
                     messagebox.showwarning("Input Error", "Deadline cannot be earlier than today.")
                     return
@@ -343,10 +352,10 @@ class HomeworkPlanner(Frame, Resize):
                 messagebox.showwarning("Input Error", "Deadline must be YYYY-MM-DD.")
                 return
 
-            task["subject"] = subject_entry.get().strip().capitalize()
-            task["deadline"] = deadline_entry.get().strip()
-            task["status"] = status_var.get()
-            task["details"] = details_entry.get().strip()
+            task["subject"] = subject.capitalize()
+            task["deadline"] = deadline
+            task["status"] = status
+            task["details"] = details
 
             messagebox.showinfo("Info", "Saved successfully.")
 
