@@ -5,6 +5,7 @@ import calendar
 import os
 
 DATA_FILE = "reminders.txt"
+HISTORY_FILE = "history.txt"
 
 # reminder classes
 class NormalReminder:
@@ -12,18 +13,16 @@ class NormalReminder:
         self.dt = dt
         self.description = description
         self.attribute = attribute
-        # id uses dt timestamp + hash of description+attribute to reduce collisions
         self.id = f"N-{self.dt.timestamp()}-{abs(hash(description + attribute))}"
 
 class RepeatReminder:
     def __init__(self, weekday: int, at_time: dtime, description: str, attribute: str = ""):
-        # weekday: 0=Monday .. 6=Sunday
         self.weekday = weekday
         self.at_time = at_time
         self.description = description
         self.attribute = attribute
-        # id uses weekday + time + hash of description+attribute
         self.id = f"R-{weekday}-{at_time.strftime('%H%M')}-{abs(hash(description + attribute))}"
+
 
 # main frame
 class SimpleReminder(tk.Frame):
@@ -33,7 +32,9 @@ class SimpleReminder(tk.Frame):
 
         self.normal_reminders = []
         self.repeat_reminders = []
+        self.history_reminders = []
         self.load_from_file()
+        self.load_history()
 
         # layout
         self.grid_rowconfigure(1, weight=1)
@@ -62,11 +63,10 @@ class SimpleReminder(tk.Frame):
                   **btn_style, command=lambda: self.show_right("AddRepeatPage")).grid(row=1, column=0, sticky="nsew", padx=12, pady=12)
         tk.Button(left_frame, text="View Reminders", bg="#3ce7d6", fg="black",
                   **btn_style, command=lambda: self.show_right("ViewReminderPage")).grid(row=2, column=0, sticky="nsew", padx=12, pady=12)
-        # safe call to show_main_menu if exists
         tk.Button(left_frame, text="Back to Main Menu", bg="#de3ce7", fg="white",
                   **btn_style, command=lambda: getattr(self.controller, "show_main_menu", lambda: None)()).grid(row=3, column=0, sticky="nsew", padx=12, pady=12)
 
-        # right container for pages
+        # right container
         self.right_frame = tk.Frame(content, bd=2, relief="ridge", bg="#6bf39d")
         self.right_frame.grid(row=0, column=1, sticky="nsew")
         self.right_frame.grid_rowconfigure(0, weight=1)
@@ -91,23 +91,20 @@ class SimpleReminder(tk.Frame):
             frame.show()
         frame.tkraise()
 
-    # periodically check reminders
+    # check reminders
     def check_reminders(self):
         now = datetime.now()
-
-        # one-time reminders due within 6 seconds window
         due_normals = [r for r in self.normal_reminders if abs((r.dt - now).total_seconds()) < 6]
         for r in due_normals:
             self.show_popup(f"{r.attribute}: {r.description}")
             self.normal_reminders = [x for x in self.normal_reminders if x.id != r.id]
+            self.add_to_history(f"[Normal] | {r.dt.strftime('%Y-%m-%d %H:%M')} | {r.attribute} | {r.description}")
             self.save_to_file()
 
-        # repeat reminders
         for r in self.repeat_reminders:
             if r.weekday == now.weekday():
                 due_dt = datetime.combine(now.date(), r.at_time)
                 if abs((due_dt - now).total_seconds()) < 6:
-                    # show attribute + description for repeat reminders too
                     self.show_popup(f"{r.attribute}: {r.description}")
 
         self.after(5000, self.check_reminders)
@@ -123,10 +120,8 @@ class SimpleReminder(tk.Frame):
         try:
             with open(DATA_FILE, "w", encoding="utf-8") as f:
                 for r in self.normal_reminders:
-                    # N|YYYY-MM-DD HH:MM|attribute|description
                     f.write(f"N|{r.dt.strftime('%Y-%m-%d %H:%M')}|{r.attribute}|{r.description}\n")
                 for r in self.repeat_reminders:
-                    # New format: R|weekday|HH:MM|attribute|description
                     f.write(f"R|{r.weekday}|{r.at_time.strftime('%H:%M')}|{r.attribute}|{r.description}\n")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save reminders: {e}")
@@ -134,10 +129,8 @@ class SimpleReminder(tk.Frame):
     def load_from_file(self):
         self.normal_reminders.clear()
         self.repeat_reminders.clear()
-
         if not os.path.exists(DATA_FILE):
             return
-
         try:
             with open(DATA_FILE, "r", encoding="utf-8") as f:
                 for line in f:
@@ -146,28 +139,44 @@ class SimpleReminder(tk.Frame):
                         continue
                     if parts[0] == "N" and len(parts) == 4:
                         dt = datetime.strptime(parts[1], "%Y-%m-%d %H:%M")
-                        attribute = parts[2]
-                        description = parts[3]
-                        self.normal_reminders.append(NormalReminder(dt, description, attribute))
-                    elif parts[0] == "R":
-                        # Support both old format (4 parts: R|weekday|HH:MM|description)
-                        # and new format (5 parts: R|weekday|HH:MM|attribute|description)
-                        if len(parts) == 4:
-                            weekday = int(parts[1])
-                            at_time = datetime.strptime(parts[2], "%H:%M").time()
-                            attribute = ""
-                            description = parts[3]
-                            self.repeat_reminders.append(RepeatReminder(weekday, at_time, description, attribute))
-                        elif len(parts) == 5:
-                            weekday = int(parts[1])
-                            at_time = datetime.strptime(parts[2], "%H:%M").time()
-                            attribute = parts[3]
-                            description = parts[4]
-                            self.repeat_reminders.append(RepeatReminder(weekday, at_time, description, attribute))
+                        self.normal_reminders.append(NormalReminder(dt, parts[3], parts[2]))
+                    elif parts[0] == "R" and len(parts) >= 4:
+                        weekday = int(parts[1])
+                        at_time = datetime.strptime(parts[2], "%H:%M").time()
+                        if len(parts) == 5:
+                            attr, desc = parts[3], parts[4]
+                        else:
+                            attr, desc = "", parts[3]
+                        self.repeat_reminders.append(RepeatReminder(weekday, at_time, desc, attr))
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load reminders: {e}")
 
+    def add_to_history(self, text):
+        try:
+            with open(HISTORY_FILE, "a", encoding="utf-8") as f:
+                f.write(text + "\n")
+            self.load_history()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save history: {e}")
 
+    def load_history(self):
+        self.history_reminders.clear()
+        if os.path.exists(HISTORY_FILE):
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                self.history_reminders = [line.strip() for line in f if line.strip()]
+
+    def delete_history(self, text):
+        # 内存中删除
+        self.history_reminders = [h for h in self.history_reminders if h != text]
+
+        # 写回文件
+        try:
+            with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+                for h in self.history_reminders:
+                    f.write(h + "\n")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to update history file: {e}")
+            
 # add one-time reminder page
 class AddReminderPage(tk.Frame):
     def __init__(self, parent, controller: SimpleReminder):
@@ -208,7 +217,7 @@ class AddReminderPage(tk.Frame):
         time_frame.grid_columnconfigure(0, weight=1)
         time_frame.grid_columnconfigure(1, weight=1)
 
-        tk.Label(time_frame, text="Time:", font=("Arial", 14), bg="#6bf39d").grid(row=0, column=0, columnspan=2, pady=5)
+        tk.Label(time_frame, text="Time(HH:MM) :", font=("Arial", 14), bg="#6bf39d").grid(row=0, column=0, columnspan=2, pady=5)
 
         now = datetime.now()
         self.hour_var = tk.StringVar(value=now.strftime("%H"))
@@ -431,16 +440,11 @@ class AddRepeatPage(tk.Frame):
         messagebox.showinfo("Success", "Repeat reminder added!")
         self.controller.show_right("ViewReminderPage")
 
-
 # view reminders page
 class ViewReminderPage(tk.Frame):
     def __init__(self, parent, controller: SimpleReminder):
         super().__init__(parent, bg="#6bf39d")
         self.controller = controller
-
-        header = tk.Label(self, text="View Reminders", font=("Arial", 18, "bold"), bg="#6bf39d")
-        header.pack(pady=10)
-
         self.list_frame = tk.Frame(self, bg="#6bf39d")
         self.list_frame.pack(fill="both", expand=True)
 
@@ -448,31 +452,44 @@ class ViewReminderPage(tk.Frame):
         for w in self.list_frame.winfo_children():
             w.destroy()
 
-        # one-time reminders
+        # Active reminders
+        tk.Label(self.list_frame, text="View Reminders", font=("Arial", 18, "bold"), bg="#6bf39d").pack(pady=10)
         for r in sorted(self.controller.normal_reminders, key=lambda x: x.dt):
             f = tk.Frame(self.list_frame, bd=1, relief="solid", pady=4, bg="#6bf39d")
             f.pack(fill="x", padx=5, pady=4)
-            left_text = f"[Normal] | {r.dt.strftime('%Y-%m-%d %H:%M')} | {r.attribute} | {r.description}"
-            tk.Label(f, text=left_text, anchor="w", font=("Arial", 15), bg="#6bf39d").pack(side="left", padx=6, expand=True, fill="x")
-            tk.Button(f, text="X", command=lambda rid=r.id: self.delete("normal", rid)).pack(side="right", padx=6)
+            text = f"[Normal] | {r.dt.strftime('%Y-%m-%d %H:%M')} | {r.attribute} | {r.description}"
+            tk.Label(f, text=text, anchor="w", font=("Arial", 15), bg="#6bf39d").pack(side="left", padx=6, expand=True, fill="x")
+            tk.Button(f, text="X", command=lambda rid=r.id, t=text: self.delete("normal", rid, t)).pack(side="right", padx=6)
 
-        # repeat reminders
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         for r in sorted(self.controller.repeat_reminders, key=lambda x: (x.weekday, x.at_time)):
             f = tk.Frame(self.list_frame, bd=1, relief="solid", pady=4, bg="#6bf39d")
             f.pack(fill="x", padx=5, pady=4)
-            left_text = f"[Repeat] | {days[r.weekday]} {r.at_time.strftime('%H:%M')} | {r.attribute} | {r.description}"
-            tk.Label(f, text=left_text, anchor="w", font=("Arial", 15), bg="#6bf39d").pack(side="left", padx=6, expand=True, fill="x")
-            tk.Button(f, text="X", command=lambda rid=r.id: self.delete("repeat", rid)).pack(side="right", padx=6)
+            text = f"[Repeat] | {days[r.weekday]} {r.at_time.strftime('%H:%M')} | {r.attribute} | {r.description}"
+            tk.Label(f, text=text, anchor="w", font=("Arial", 15), bg="#6bf39d").pack(side="left", padx=6, expand=True, fill="x")
+            tk.Button(f, text="X", command=lambda rid=r.id, t=text: self.delete("repeat", rid, t)).pack(side="right", padx=6)
 
-    def delete(self, typ, rid):
+        # History reminders
+        if self.controller.history_reminders:
+            tk.Label(self.list_frame, text="History Reminders", font=("Arial", 18, "bold"), bg="#6bf39d").pack(pady=10)
+            for text in self.controller.history_reminders:
+                f = tk.Frame(self.list_frame, bd=1, relief="solid", pady=4, bg="#6bf39d")
+                f.pack(fill="x", padx=5, pady=4)
+                tk.Label(f, text=text, anchor="w", font=("Arial", 15), bg="#6bf39d").pack(side="left", padx=6, expand=True, fill="x")
+                tk.Button(f, text="X", command=lambda t=text: self.delete_history(t)).pack(side="right", padx=6)
+
+    def delete(self, typ, rid, text):
         if typ == "normal":
             self.controller.normal_reminders = [r for r in self.controller.normal_reminders if r.id != rid]
         else:
             self.controller.repeat_reminders = [r for r in self.controller.repeat_reminders if r.id != rid]
-        self.controller.save_to_file()
-        self.show()
+            self.controller.save_to_file()
+            self.controller.add_to_history(text)
+            self.show()
 
+    def delete_history(self, text):
+        self.controller.delete_history(text)
+        self.show()
 
 if __name__ == "__main__":
     root = tk.Tk()

@@ -32,7 +32,7 @@ class TaskBar(Frame):
 
         self._make_button("Home",             "HomePage",        self.icons["home"],     0)
         self._make_button("GPA Calculator",   "GpaPage",         self.icons["gpa"],      1)
-        self._make_button("Simple Reminder",  "SimpleReminder",  self.icons["reminder"], 2)
+        self._make_button("Simple Reminder App",  "SimpleReminder",  self.icons["reminder"], 2)
         self._make_button("Homework Planner", "HomeworkPlanner", self.icons["planner"],  3)
         self._make_exit_button("Exit", self.icons["exit"], 4)
 
