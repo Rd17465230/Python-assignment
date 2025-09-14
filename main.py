@@ -25,6 +25,9 @@ class HomePage(Frame, Resize):
         self.title.place(relx=0.5, rely=0.2,
                          relwidth=0.5, relheight=0.1,
                          anchor="center")
+        overview = GpaOverview(self)
+        overview.pack(fill="x", padx=20, pady=10)
+
 
         self.after(1, self.update_layout)
 
@@ -52,7 +55,7 @@ class StudentAssistantApp(Tk):
         self.frames_container.pack(side="top", fill="both", expand=True)
 
         self.taskbar = TaskBar(self.root_container, self)
-        self.taskbar.place(relx=0, rely=1.0, relwidth=1, anchor='sw')
+        self.taskbar.place(relx=0, rely=1.0, relwidth=1, relheight=0.05,anchor='sw')
         self.taskbar.lower()
 
         self.frames = {}

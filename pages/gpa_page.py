@@ -33,7 +33,7 @@ class GpaPage(Frame):
         self.title_label.pack(pady=20)
 
         content_frame = Frame(self, bg="#f0f4f8")
-        content_frame.pack(fill="both", expand=True, padx=20, pady=(10,35))
+        content_frame.pack(fill="both", expand=True, padx=20, pady=(0,45))
         content_frame.grid_rowconfigure(0, weight=1)
         content_frame.grid_columnconfigure(0, weight=2) 
         content_frame.grid_columnconfigure(1, weight=3)  

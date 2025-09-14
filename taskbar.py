@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 
 class TaskBar(Frame):
     def __init__(self, parent, controller):
-        Frame.__init__(self, parent, bg="#1f2a44", height=60)
+        Frame.__init__(self, parent, bg="#1f2a44", height=100)
         self.controller = controller
 
         self.icons = {
