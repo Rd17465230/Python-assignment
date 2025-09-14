@@ -30,7 +30,7 @@ class TaskBar(Frame):
         self.columnconfigure((0,1,2,3,4), weight=1, uniform="buttons")
         self.rowconfigure(0, weight=1)
 
-        self._make_button("Home",             "MainMenu",        self.icons["home"],     0)
+        self._make_button("Home",             "HomePage",        self.icons["home"],     0)
         self._make_button("GPA Calculator",   "GpaPage",         self.icons["gpa"],      1)
         self._make_button("Simple Reminder",  "SimpleReminder",  self.icons["reminder"], 2)
         self._make_button("Homework Planner", "HomeworkPlanner", self.icons["planner"],  3)

@@ -229,9 +229,15 @@ class GpaPage(Frame):
 
         sem["courses"].append(course)
 
-        self.update_idletasks()                  
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        self.canvas.yview_moveto(1.0)           
+        name_e.focus_set() 
+        self.canvas.update_idletasks()
+        y1 = name_e.winfo_y()
+        h  = self.scrollable_frame.winfo_height()
+        view_h = self.canvas.winfo_height()
+        if h > view_h:
+            frac = min(max(y1 / (h - view_h), 0), 1)
+            self.canvas.yview_moveto(frac)
+
 
     def add_semester(self):
         sem_index = len(self.semesters) + 1
@@ -305,10 +311,16 @@ class GpaPage(Frame):
         self.semesters.append(sem)
         self.add_course(sem)
 
-        self.update_idletasks()                  
-        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        self.canvas.yview_moveto(1.0)            
-
+        first_entry = sem["courses"][0]["course_name"]
+        first_entry.focus_set()
+        self.canvas.update_idletasks()
+        y1 = sem["border_frame"].winfo_y()
+        h  = self.scrollable_frame.winfo_height()
+        view_h = self.canvas.winfo_height()
+        if h > view_h:
+            frac = min(max(y1 / (h - view_h), 0), 1)
+            self.canvas.yview_moveto(frac)
+                
     def remove_semester(self, sem_to_remove):
         try:
             if len(self.semesters) <= 1:
