@@ -23,7 +23,6 @@ class RepeatReminder:
         self.attribute = attribute
         self.id = f"R-{weekday}-{at_time.strftime('%H%M')}-{abs(hash(description + attribute))}"
 
-
 # main frame
 class SimpleReminder(tk.Frame):
     def __init__(self, parent, controller=None):
@@ -166,10 +165,8 @@ class SimpleReminder(tk.Frame):
                 self.history_reminders = [line.strip() for line in f if line.strip()]
 
     def delete_history(self, text):
-        # 内存中删除
         self.history_reminders = [h for h in self.history_reminders if h != text]
 
-        # 写回文件
         try:
             with open(HISTORY_FILE, "w", encoding="utf-8") as f:
                 for h in self.history_reminders:
@@ -348,7 +345,6 @@ class AddRepeatPage(tk.Frame):
         super().__init__(parent, bg="#6bf39d")
         self.controller = controller
 
-        # 标题
         tk.Label(
             self, text="Add Repeat Reminder", font=("Arial", 36, "bold"), bg="#6bf39d"
         ).pack(pady=10)
@@ -490,11 +486,3 @@ class ViewReminderPage(tk.Frame):
     def delete_history(self, text):
         self.controller.delete_history(text)
         self.show()
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Simple Reminder App")
-    root.geometry("1000x700")
-    app = SimpleReminder(root)
-    app.pack(fill="both", expand=True)
-    root.mainloop()
